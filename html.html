@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algebra Quest - Timed Edition</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    height: 100%;
+    background: url("https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1920&q=80") no-repeat center center/cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    padding: 1rem;
+}
+
+/* Acrylic style */
+.acrylic {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(25px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.main-container {
+    width: 100%;
+    max-width: 600px; /* Max width for desktop */
+    border-radius: 40px;
+    padding: 25px;
+}
+
+/* Tabs */
+.tab-buttons {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.tab-btn.active {
+    color: white;
+    border-bottom: 2px solid white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Home Tab Content */
+.home-content {
+    text-align: left;
+    padding: 10px;
+}
+
+.home-content h2 {
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+.home-content h3 {
+    font-size: 18px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.home-content p,
+.home-content li {
+    font-size: 16px;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+.home-content ul {
+    list-style-position: inside;
+    padding-left: 10px;
+}
+.home-content.example {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-family: monospace;
+}
+
+/* Quiz Card */
+.quiz-card {
+    padding: 20px;
+    text-align: center;
+}
+
+.question {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.timer {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.option-btn {
+    padding: 14px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 1px solid transparent;
+}
+
+.option-btn:hover {
+    border-color: rgba(255,255,255,0.5);
+    transform: scale(1.02);
+}
+
+.correct { background: rgba(0, 255, 204, 0.25); }
+.wrong { background: rgba(255, 80, 80, 0.25); }
+
+.score {
+    margin-top: 20px;
+}
+
+/* ===== Loading Screen ===== */
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(6px);
+}
+.loading-panel {
+    width: min(520px, calc(100% - 40px));
+    border-radius: 40px;
+    padding: 32px 28px;
+    text-align: center;
+}
+.loading-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    margin-bottom: 14px;
+}
+.loading-sub {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-top: 12px;
+}
+.loading-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 18px;
+}
+.spinner {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: rgba(255, 255, 255, 0.85);
+    animation: spin 0.9s linear infinite;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
+}
+.progress {
+    width: min(320px, 62vw);
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.10);
+}
+.progress > i {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.9));
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.10) inset;
+    animation: loadbar 1.35s ease-in-out infinite;
+}
+.loading-screen.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 420ms ease;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes loadbar {
+    0% { width: 0%; opacity: 0.7; }
+    45% { width: 78%; opacity: 1; }
+    100% { width: 100%; opacity: 0.85; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner,.progress > i { animation: none; }
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 600px) {
+    body {
+        /* Allow content to scroll on small screens */
+        align-items: flex-start;
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+   .main-container {
+        padding: 15px;
+        border-radius: 25px;
+    }
+
+   .home-content h2 {
+        font-size: 20px;
+    }
+
+   .home-content p,.home-content li {
+        font-size: 15px;
+    }
+
+   .options {
+        grid-template-columns: 1fr; /* Stack options vertically on mobile */
+        gap: 12px;
+    }
+    
+   .tab-buttons {
+        justify-content: center;
+    }
+
+   .tab-btn {
+        padding: 10px 15px;
+        font-size: 15px;
+    }
+
+   .quiz-card {
+        padding: 5px;
+    }
+}
+
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen" role="status" aria-live="polite" aria-label="Loading">
+    <div class="loading-panel acrylic">
+        <div class="loading-title">Loading Page…</div>
+        <div class="loading-row" aria-hidden="true">
+            <div class="spinner"></div>
+            <div class="progress"><i></i></div>
+        </div>
+        <div class="loading-sub">✨Hello✨</div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-container acrylic">
+    <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="home">Home</button>
+        <button class="tab-btn" data-tab="quiz">Quiz</button>
+    </div>
+
+    <!-- Home Tab -->
+    <div id="home" class="tab-content active">
+        <div class="home-content">
+            <h2>Fundamentals of Algebraic Expressions</h2>
+            <p>Welcome! This is a simple presentation of the basic concepts of algebra.</p>
+
+            <h3>What is an Algebraic Expression?</h3>
+            <p>An algebraic expression is a mathematical phrase that can contain ordinary numbers (constants), variables (like x or y), and operators (like add, subtract, multiply, and divide).</p>
+            <p class="example">Example: <b>2x + 5</b></p>
+            <ul>
+                <li><b>Variable:</b> A symbol for a number we don't know yet. It's usually a letter like x or y. (Here, it's <b>x</b>)</li>
+                <li><b>Coefficient:</b> The number multiplied by the variable. (Here, it's <b>2</b>)</li>
+                <li><b>Constant:</b> A fixed value; a number on its own. (Here, it's <b>5</b>)</li>
+                <li><b>Term:</b> A single number, or a variable and number multiplied together. (Here, <b>2x</b> and <b>5</b> are terms)</li>
+            </ul>
+
+            <h3>Tips & Workarounds</h3>
+            <p>The key to algebra is often simplifying expressions to make them easier to work with.</p>
+            <ul>
+                <li><b>Combining Like Terms:</b> You can add or subtract terms that have the same variable.
+                    <p class="example"><b>3x + 5y - x = 2x + 5y</b> (You can combine 3x and -x)</p>
+                </li>
+                <li><b>Distributive Property:</b> This rule lets you multiply a sum by multiplying each addend separately and then add the products.
+                    <p class="example"><b>4(x + 2) = 4x + 8</b> (Multiply 4 by x, and 4 by 2)</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Quiz Tab -->
+    <div id="quiz" class="tab-content">
+        <div class="quiz-card">
+            <div class="timer">Time Left: <span id="time">30</span>s</div>
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="score">Score: <span id="score">0</span> | Question <span id="qnum">1</span>/50</div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// --- Tab Navigation ---
+const tabs = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const target = document.getElementById(tab.dataset.tab);
+
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        tabContents.forEach(tc => tc.classList.remove('active'));
+        target.classList.add('active');
+    });
+});
+
+// --- Quiz Logic ---
+let currentQuestion = 0;
+let score = 0;
+let timer;
+let timeLeft = 15;
+let correctAnswer;
+
+function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateQuestion() {
+    let type = randInt(1, 3);
+    let questionText;
+
+    if (type === 1) {
+        let a = randInt(-20, 20);
+        let b = randInt(-20, 20);
+        correctAnswer = a + b;
+        questionText = `Find: ${a} + (${b})`;
+    } else if (type === 2) {
+        let x = randInt(1, 15);
+        let a = randInt(2, 10);
+        let b = randInt(-10, 10);
+        let result = a * x + b;
+        correctAnswer = x;
+        questionText = `Solve: ${a}x ${b >= 0? "+" : ""}${b} = ${result}`;
+    } else {
+        let x = randInt(1, 10);
+        let a = randInt(2, 6);
+        let b = randInt(1, 10);
+        let result = a * (x + b);
+        correctAnswer = x;
+        questionText = `Solve: ${a}(x + ${b}) = ${result}`;
+    }
+
+    document.getElementById("question").innerText = questionText;
+    generateOptions();
+}
+
+function generateOptions() {
+    let optionsDiv = document.getElementById("options");
+    optionsDiv.innerHTML = "";
+
+    let answers = [correctAnswer];
+
+    while (answers.length < 4) {
+        let fake = correctAnswer + randInt(-10, 10);
+        if (!answers.includes(fake)) {
+            answers.push(fake);
+        }
+    }
+
+    answers.sort(() => Math.random() - 0.5);
+
+    answers.forEach((ans, index) => {
+        let btn = document.createElement("div");
+        btn.className = "option-btn acrylic";
+        btn.innerText = String.fromCharCode(65 + index) + ". " + ans;
+        btn.onclick = () => checkAnswer(ans, btn);
+        optionsDiv.appendChild(btn);
+    });
+}
+
+function startTimer() {
+    timeLeft = 15;
+    document.getElementById("time").innerText = timeLeft;
+
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("time").innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            nextQuestion();
+        }
+    }, 1000);
+}
+
+function checkAnswer(selected, btn) {
+    clearInterval(timer);
+    let buttons = document.querySelectorAll(".option-btn");
+
+    buttons.forEach(b => b.onclick = null);
+
+    if (selected === correctAnswer) {
+        btn.classList.add("correct");
+        score += 10;
+    } else {
+        btn.classList.add("wrong");
+        buttons.forEach(b => {
+            if (Number(b.innerText.split(". ")[1]) === correctAnswer) {
+                b.classList.add("correct");
+            }
+        });
+    }
+
+    document.getElementById("score").innerText = score;
+    setTimeout(nextQuestion, 1200);
+}
+
+function nextQuestion() {
+    currentQuestion++;
+    if (currentQuestion >= 50) {
+        document.getElementById("question").innerText = "╰(*°▽°*)╯ Quiz Finished!";
+        document.getElementById("options").innerHTML = "";
+        return;
+    }
+
+    document.getElementById("qnum").innerText = currentQuestion + 1;
+    generateQuestion();
+    startTimer();
+}
+
+// Start Game on page load
+generateQuestion();
+startTimer();
+
+// Hide Loading Screen
+(function() {
+    const loader = document.getElementById("loadingScreen");
+    const hide = () => {
+        loader.classList.add("is-hidden");
+        setTimeout(() => loader.remove(), 520);
+    };
+
+    if (document.readyState === "complete") hide();
+    else window.addEventListener("load", () => setTimeout(hide, 450), { once: true });
+})();
+
+</script>
+</body>
+</html>
